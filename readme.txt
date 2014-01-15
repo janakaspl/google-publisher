@@ -11,8 +11,7 @@ The official Google plugin for publishers. Supported products include AdSense an
 
 == Description ==
 
-The Google Publisher Plugin enables you to easily use Google's products - including AdSense and Webmaster Tools - with
-your WordPress site.
+The Google Publisher Plugin enables you to easily use Google's products - including AdSense and Webmaster Tools - with your WordPress site.
 
 This beta version of the Google Publisher Plugin allows you to:
 
