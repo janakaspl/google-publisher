@@ -54,7 +54,5 @@ At this time, the Google Publisher Plugin cannot be used on WordPress.com.
 
 == Terms of service ==
 
-Use of the Google Publisher Plugin is governed by [Google's Terms of Service](http://www.google.com/policies/terms/) and
-[Privacy Policy](http://www.google.com/policies/privacy/). For products and services that can be used with the Google
-Publisher Plugin, such as AdSense, additional Terms of Service may also apply.
+The plugin source code is GPL, however use of Google Services through the plugin is governed by [Google's Terms of Service](http://www.google.com/policies/terms/) and [Privacy Policy](http://www.google.com/policies/privacy/). For products and services that can be used with the Google Publisher Plugin, such as AdSense, additional Terms of Service may also apply.
 
