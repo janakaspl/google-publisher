@@ -2,16 +2,18 @@
 Contributors: google
 Tags: google, AdSense, ads, webmaster, advertising
 Requires at least: 3.0.0
-Tested up to: 3.8.0
+Tested up to: 3.8.1
 Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-The official Google plugin for publishers. Supported products include AdSense and Webmaster Tools. This is a beta release.
+The official Google plugin for publishers, written by Google. Supported products include AdSense and Webmaster Tools. This is a beta release.
 
 == Description ==
 
 The Google Publisher Plugin enables you to easily use Google's products - including AdSense and Webmaster Tools - with your WordPress site.
+
+Adding AdSense ads usually requires you to generate snippets in AdSense and paste these into your site, or to manually edit PHP files. This plugin lets you place AdSense ads using a simple point-and-click UI.
 
 This beta version of the Google Publisher Plugin allows you to:
 
@@ -49,8 +51,21 @@ At this time, the Google Publisher Plugin cannot be used on WordPress.com.
 
 == Changelog ==
 
-= 0.1.0 =
-* Initial release
+= 30 Jan 2014 =
+The following changes do not require a plugin update, and were fixed server-side.
+
+* No longer show dynamicgoogletags.update() in post content if the theme incorrectly strips HTML.
+* Added support for sites with mixed case URLs.
+* Fixed bug related to preview of vertical ads.
+* Improved margins on ad placements.
+* Inverted marker for placement at the top of the page to point at the correct location for placement.
+* Added support for sites that use HTTPS but are administered over HTTP.
+* Update the view, specifically ad sizes, when user resizes the window in preview mode.
+* Fixed miscellaneous errors when computing possible placements.
+* Localized AdSense help center pages for the plugin.
+
+= 15 Jan 2014, Plugin version 0.1.0 =
+* Initial release.
 
 == Terms of service ==
 
