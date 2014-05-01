@@ -51,6 +51,14 @@ At this time, the Google Publisher Plugin cannot be used on WordPress.com.
 
 == Changelog ==
 
+= 1 May 2014 =
+The following changes do not require a plugin update, and were fixed server-side.
+
+ * Ad units created by the plugin now have understandable names in AdSense, such as "Front page - 1 (yoursite.com)".
+ * Added support for placing ads on "Tags" and "Category" pages.
+ * Fixed miscellaneous errors when computing possible placements.
+ * Improved error messages for various failures.
+
 = 30 Jan 2014 =
 The following changes do not require a plugin update, and were fixed server-side.
 
