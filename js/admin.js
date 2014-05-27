@@ -38,7 +38,8 @@ var adminIframe = document.getElementById(
 var previewIframe = document.getElementById(
     'google-publisher-plugin-preview-iframe');
 
-var previewIframeMarginTop = 0;
+var currentIframeLayout = IframeLayout.NORMAL;
+var currentPreviewMarginTop = 0;
 
 /**
  * Sets the layout of the admin and preview iframe.
@@ -51,6 +52,9 @@ var previewIframeMarginTop = 0;
  *    pixels. Only applied when the layout is set to normal.
  */
 var setIframeLayout = function(layout, previewMarginTop, pageHeight) {
+  currentIframeLayout = layout;
+  currentPreviewMarginTop = previewMarginTop;
+
   var cssClassName;
   switch (layout) {
     case IframeLayout.NORMAL:
@@ -71,12 +75,8 @@ var setIframeLayout = function(layout, previewMarginTop, pageHeight) {
   } else {
     adminIframe.style.height = '';
   }
-  var headerHeight = (layout == IframeLayout.NORMAL) ? 0 : getHeaderHeight();
-  adminIframe.style.marginTop = headerHeight + 'px';
 
-  previewIframeMarginTop = headerHeight + previewMarginTop;
-  previewIframe.style.marginTop = previewIframeMarginTop + 'px';
-  updateIframeHeight();
+  updateIframePositioning();
 
   var hideWordPressMenu = (layout != IframeLayout.NORMAL);
   var adminMenuWrap = document.getElementById('adminmenuwrap');
@@ -90,7 +90,13 @@ var setIframeLayout = function(layout, previewMarginTop, pageHeight) {
 };
 
 
-var updateIframeHeight = function() {
+var updateIframePositioning = function() {
+  var headerHeight =
+      (currentIframeLayout == IframeLayout.NORMAL) ? 0 : getHeaderHeight();
+  adminIframe.style.marginTop = headerHeight + 'px';
+
+  var previewIframeMarginTop = headerHeight + currentPreviewMarginTop;
+  previewIframe.style.marginTop = previewIframeMarginTop + 'px';
   previewIframe.style.height =
       (window.innerHeight - previewIframeMarginTop) + 'px';
 };
@@ -101,9 +107,14 @@ var updateIframeHeight = function() {
  */
 var getHeaderHeight = function() {
   var headerHeight = 28;
+  // Before WordPress 3.7, the ID of the admin bar was 'wphead'.
   var wpHead = document.getElementById('wphead');
+  // From WordPress 3.7 onwards, it became 'wpadminbar'.
+  var wpAdminBar = document.getElementById('wpadminbar');
   if (wpHead) {
     headerHeight = wpHead.offsetHeight - 1;
+  } else if (wpAdminBar) {
+    headerHeight = wpAdminBar.offsetHeight;
   }
   return headerHeight;
 };
@@ -164,7 +175,7 @@ var receiveMessage = function(event) {
 };
 
 window.addEventListener('message', receiveMessage, false);
-window.addEventListener('resize', updateIframeHeight, false);
+window.addEventListener('resize', updateIframePositioning, false);
 adminIframe.addEventListener('load', sendAllowFrameMessage, false);
 
 })();

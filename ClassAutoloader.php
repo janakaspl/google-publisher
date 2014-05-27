@@ -38,7 +38,10 @@ class GooglePublisherPluginClassAutoloader {
   protected static $CLASSNAME_WHITELIST = array(
     'GooglePublisherPluginAdmin' => '',
     'GooglePublisherPluginConfiguration' => '',
+    'GooglePublisherPluginNotifier' => '',
     'GooglePublisherPluginTags' => '',
+    'GooglePublisherPluginUpdater' => '',
+    'GooglePublisherPluginUpdaterStatus' => '',
     'GooglePublisherPluginUtils' => '',
   );
 

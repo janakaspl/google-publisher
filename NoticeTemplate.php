@@ -1,5 +1,6 @@
+<?php
 /*
-Copyright 2013 Google Inc. All Rights Reserved.
+Copyright 2014 Google Inc. All Rights Reserved.
 
 This file is part of the Google Publisher Plugin.
 
@@ -18,35 +19,15 @@ along with the Google Publisher Plugin.
 If not, see <http://www.gnu.org/licenses/>.
 */
 
-#google-publisher-plugin-preview-iframe {
-  display: none;
+if(!defined('ABSPATH')) {
+  exit;
 }
-
-.google-publisher-plugin-signin-panel {
-  background: #fff;
-  border: 1px solid #aaa;
-  margin-top: 10px;
-  padding: 5px 15px;
-}
-
-.google-publisher-plugin-expanded #google-publisher-plugin-admin-iframe {
-  height: 100%;
-  left: 0px;
-  position: fixed;
-  top: 0px;
-  width: 100%;
-  z-index: 100;
-}
-
-.google-publisher-plugin-expanded #google-publisher-plugin-preview-iframe {
-  display: block;
-  left: 0;
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 99;
-}
-
-.google-publisher-plugin-preview-on-top #google-publisher-plugin-preview-iframe {
-  z-index: 101;
-}
+?>
+<div class="update-nag">
+  <p>
+    <?php _e('There are issues with your Google Publisher Plugin settings. This may affect your ad placements.', 'google-publisher-plugin') ?>
+    <a href="<?php echo admin_url('options-general.php?page=GooglePublisherPlugin'); ?>">
+      <?php _e('View settings', 'google-publisher-plugin') ?>
+    </a>
+  </p>
+</div>

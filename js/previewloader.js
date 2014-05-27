@@ -30,6 +30,14 @@ googlePublisherPluginPreviewLoader.FRONTEND_URL =
 
 
 /**
+ * Indicates if the preview injector script has been loaded. True if it
+ * has; false otherwise.
+ * @type {boolean}
+ */
+googlePublisherPluginPreviewLoader.previewInjectorScriptLoaded = false;
+
+
+/**
  * Callback to handle postMessage calls.
  *
  * @param {Object} event The postMessage event.
@@ -40,12 +48,14 @@ googlePublisherPluginPreviewLoader.receiveMessage = function(event) {
   }
   var data = /** @type {PostMessageData} */ (JSON.parse(event.data));
   if (data.action == 'load_script' &&
-      data.relativeScriptSrc.indexOf('/_/publisher_plugin/') == 0) {
+      data.relativeScriptSrc.indexOf('/_/publisher_plugin/') == 0 &&
+      !googlePublisherPluginPreviewLoader.previewInjectorScriptLoaded) {
     var script = document.createElement('script');
     script.type = 'text/javascript';
     script.src = 'https://www.gstatic.com' +
         data.relativeScriptSrc;
     document.body.appendChild(script);
+    googlePublisherPluginPreviewLoader.previewInjectorScriptLoaded = true;
   }
 };
 

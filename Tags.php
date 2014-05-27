@@ -27,23 +27,40 @@ require_once 'ClassAutoloader.php';
 
 class GooglePublisherPluginTags {
 
+  // Url parameter specifying whether to send page details in the WordPress
+  // responses, both as metadata and in the HTTP header.
+  const SEND_PAGE_DETAILS = 'google_publisher_plugin_page_details';
+
   private $configuration;
   private $current_page_type;
+  private $theme_hash;
+  private $send_page_details;
 
   /**
    * @param Configuration $configuration The configuration object to use
    *        (required).
-   * @param boolean $display_ads True if ads should be displayed.
+   * @param boolean $preview_mode True if in preview mode.
    */
-  public function __construct($configuration, $display_ads) {
+  public function __construct($configuration, $preview_mode) {
     $this->configuration = $configuration;
-    add_action('wp_head', array($this, 'printPageType'));
+    $this->send_page_details = array_key_exists(self::SEND_PAGE_DETAILS, $_GET);
+
+    // Note we can't compute the theme hash here, since this is executed before
+    // before plugins like WP touch have had a chance to change the theme.
+    $this->theme_hash = '';
 
     // To determine the current page type, WordPress needs to have
     // initialized wp_query. The template_redirect hook is the first
     // action hook after that initialization.
     add_action('template_redirect', array($this, 'determineCurrentPageType'));
-    if ($display_ads) {
+    add_action('send_headers', array($this, 'computeThemeHashAndSetHeader'),
+        PHP_INT_MAX);
+
+    if ($preview_mode || $this->send_page_details) {
+      add_action('wp_head', array($this, 'printPageDetails'));
+    }
+
+    if (!$preview_mode) {
       add_action('wp_head', array($this, 'wpHead'), PHP_INT_MAX);
       add_filter('the_content', array($this, 'wpRepeating'), PHP_INT_MAX, 1);
       add_filter('the_excerpt', array($this, 'wpRepeating'), PHP_INT_MAX, 1);
@@ -52,12 +69,47 @@ class GooglePublisherPluginTags {
   }
 
   /**
-   * Prints the page type to the page. Expected to be called on the wp_head
-   * action hook.
+   * Prints the page details in meta data to the page. Expected to be called on
+   * the wp_head action hook.
    */
-  public function printPageType() {
+  public function printPageDetails() {
     printf('<meta name="google-publisher-plugin-pagetype" content="%s">',
-           $this->current_page_type);
+        $this->current_page_type);
+  }
+
+  /**
+   * Computes an opaque ID for the current Theme.
+   *
+   * If the request is flagged to send_page_details then set a header containing
+   * the current theme hash.  This is stored by the Google Publisher Plugin in
+   * the ad configuration so the php plugin can detect if the theme has changed
+   * at serving time, and turn off ads if needed.
+   */
+  public function computeThemeHashAndSetHeader() {
+    $this->theme_hash = $this->computeThemeHash();
+
+    if ($this->send_page_details) {
+      $this->emitHttpHeader('GOOGLE-PUBLISHER-PLUGIN-THEME-HASH: ' .
+          $this->theme_hash);
+    }
+  }
+
+  /**
+   * Wrapper for the php header function, to facilitate unit testing.
+   */
+  public function emitHttpHeader($value) {
+    header($value);
+  }
+
+  /**
+   * Computes the md5 digest hash of the current active theme directory and the
+   * site id.  NOTE we don't use get_template here because we can't use that to
+   * detect when WP Touch v3.1.5 is active.
+   */
+  public function computeThemeHash() {
+    return md5(
+        parse_url(get_bloginfo('template_directory'), PHP_URL_PATH) . '#' .
+        $this->configuration->getSiteId());
   }
 
   /**
@@ -66,7 +118,8 @@ class GooglePublisherPluginTags {
    */
   public function wpHead() {
     // Inserts a js script tag which don't need escaping.
-    echo $this->configuration->getTag($this->current_page_type, 'head');
+    echo $this->configuration->getTag(
+        $this->current_page_type, 'head', $this->theme_hash);
   }
 
   /**
@@ -78,7 +131,7 @@ class GooglePublisherPluginTags {
    */
   public function wpRepeating($content) {
     $repeatingTag = $this->configuration->getTag(
-        $this->current_page_type, 'repeating');
+        $this->current_page_type, 'repeating', $this->theme_hash);
 
     return $repeatingTag . $content;
   }
@@ -89,8 +142,10 @@ class GooglePublisherPluginTags {
    */
   public function wpFooter() {
     // Inserts js script tags which don't need escaping.
-    echo $this->configuration->getTag($this->current_page_type, 'repeating');
-    echo $this->configuration->getTag($this->current_page_type, 'bodyEnd');
+    echo $this->configuration->getTag(
+        $this->current_page_type, 'repeating', $this->theme_hash);
+    echo $this->configuration->getTag(
+        $this->current_page_type, 'bodyEnd', $this->theme_hash);
   }
 
   /**
@@ -102,5 +157,9 @@ class GooglePublisherPluginTags {
       $this->current_page_type =
           GooglePublisherPluginUtils::getWordPressPageType();
     }
+  }
+
+  public function getThemeHash() {
+    return $this->theme_hash;
   }
 }

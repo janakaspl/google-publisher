@@ -50,6 +50,12 @@ class GooglePublisherPluginUtils {
       return 'singlePost';
     }
     if (is_page()) {
+      global $wp_query;
+      $template_name = get_post_meta(
+          $wp_query->post->ID, '_wp_page_template', true);
+      if ($template_name != 'default') {
+        return 'customPageTemplate';
+      }
       return 'page';
     }
     if (is_category()) {
@@ -87,9 +93,22 @@ class GooglePublisherPluginUtils {
       $urls['postsUrl'] = $postsUrl;
     }
 
-    $latestSinglePageUrl = self::getLatestSinglePageUrl($siteUrl, $postsUrl);
-    if ($latestSinglePageUrl != '') {
-      $urls['latestSinglePageUrl'] = $latestSinglePageUrl;
+    $pages = get_pages(array('meta_key' => '_wp_page_template'));
+    $customPageTemplates = array();
+    foreach ($pages as $page) {
+      $pageUrl = esc_url(get_permalink($page->ID));
+      if ($pageUrl == $siteUrl || $pageUrl == $postsUrl) {
+        continue;
+      }
+      if ($page->meta_value == 'default') {
+        $urls['latestSinglePageUrl'] = $pageUrl;
+      } else {
+        // Note meta_value is the file name of the _wp_page_template
+        $customPageTemplates[$page->meta_value] = $pageUrl;
+      }
+    }
+    if (!empty($customPageTemplates)) {
+      $urls['customPageTemplateUrlMap'] = $customPageTemplates;
     }
 
     $latestArchiveUrl = self::getLatestArchiveUrl();
@@ -136,21 +155,6 @@ class GooglePublisherPluginUtils {
   }
 
   /**
-   * Returns the permalink URL to the latest single page which is different
-   * from the site URL and the posts URL. If not found returns ''.
-   */
-  static function getLatestSinglePageUrl($siteUrl, $postsUrl) {
-    $result = self::getRecentPosts('page', 3);
-    foreach ($result as $page) {
-      $pageUrl = esc_url(get_permalink($page->ID));
-      if ($pageUrl != $siteUrl && $pageUrl != $postsUrl) {
-        return $pageUrl;
-      }
-    }
-    return '';
-  }
-
-  /**
    * Returns a latest monthly archive URL if one exists. Otherwise returns ''.
    */
   static function getLatestArchiveUrl() {
@@ -168,7 +172,7 @@ class GooglePublisherPluginUtils {
    * Returns a category URL if one exists. Otherwise returns ''.
    */
   static function getCategoryUrl() {
-    $category = get_categories(array('number' => 1));
+    $category = array_values(get_categories(array('number' => 1)));
     if (sizeof($category) == 1) {
       $categoryUrl = get_category_link($category[0]->term_id);
       return $categoryUrl;

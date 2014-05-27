@@ -4,7 +4,7 @@ Plugin Name: Google Publisher Plugin
 Plugin URI: http://wordpress.org/plugins/google-publisher
 Description: Use Google AdSense and other Google tools with your WordPress site.
 Author: Google
-Version: 0.1.0
+Version: 0.2.0
 Author URI: https://support.google.com/adsense/answer/3380626
 License: GPL2
 Text Domain: google-publisher-plugin
@@ -53,7 +53,7 @@ GooglePublisherPlugin::$basename =
 class GooglePublisherPlugin {
   public static $basename;
 
-  const PLUGIN_VERSION = '0.1.0';
+  const PLUGIN_VERSION = '0.2.0';
 
   private $admin;
   private $configuration;
@@ -65,6 +65,7 @@ class GooglePublisherPlugin {
     $this->admin = null;
     $this->configuration = null;
     $this->tags = null;
+    $this->updater = null;
 
     // Defer initialization until all plugins are loaded, to allow admin rights
     // and nonce checks.
@@ -94,9 +95,9 @@ class GooglePublisherPlugin {
    */
   public function initializeTags($action) {
     if (!isset($this->tags)) {
-      $display_ads = !isset($action) || $action != self::ACTION_PREVIEW;
+      $preview_mode = isset($action) && $action == self::ACTION_PREVIEW;
       $this->tags =
-          new GooglePublisherPluginTags($this->configuration, $display_ads);
+          new GooglePublisherPluginTags($this->configuration, $preview_mode);
     }
   }
 
@@ -115,6 +116,7 @@ class GooglePublisherPlugin {
   const CMS_COMMAND_WRITE_SITE_DATA = 'write_site_data';
   const CMS_COMMAND = 'command';
   const CMS_COMMAND_PARAM = 'param';
+  const CMS_COMMAND_SUCCESS = 'GooglePublisherPluginCmsCommandStatus::OK';
 
   /**
    * Processes a CMS command sent from publisherplugin.google.com using the
@@ -124,10 +126,9 @@ class GooglePublisherPlugin {
    */
   public function handleCmsCommandAction() {
     GooglePublisherPluginUtils::checkAdminRights();
-    // Reject invalid nonces and nonces that are generated more than
-    // 12 hours ago.
-    if (wp_verify_nonce($_REQUEST['_wpnonce'],
-        GooglePublisherPluginAdmin::CMS_COMMAND_ACTION) != 1) {
+    // Reject invalid nonces.
+    if (!wp_verify_nonce($_REQUEST['_wpnonce'],
+        GooglePublisherPluginAdmin::CMS_COMMAND_ACTION)) {
       GooglePublisherPluginUtils::dieSilently();
       return;
     }
@@ -156,14 +157,20 @@ class GooglePublisherPlugin {
     if ($decoded === null) {
       return 'Failed to decoded site data (invalid JSON)';
     }
+
     if (array_key_exists('verification_token', $decoded)) {
       $token = htmlspecialchars($decoded['verification_token']);
-      $this->configuration->writeSiteVerificationToken($token);
+      if (!$this->configuration->writeSiteVerificationToken($token)) {
+        return 'Write site verification token failed';
+      }
     }
     if (array_key_exists('site_id', $decoded)) {
-      $this->configuration->writeSiteId($decoded['site_id']);
+      if (!$this->configuration->writeSiteId($decoded['site_id'])){
+        return 'Write site ID failed';
+      }
     }
-    return 'OK';
+
+    return self::CMS_COMMAND_SUCCESS;
   }
 
   /**
@@ -186,6 +193,7 @@ class GooglePublisherPlugin {
   const WRITE_SITE_DATA_ACTION = 'write_site_data';
   const ACTION_PREVIEW = 'preview';
   const ACTION_VERIFY = 'verify';
+  const ACTION_TRIGGER_UPDATE = 'trigger_update';
   const CMS_COMMAND_ACTION = 'cms_command';
 
   /**
@@ -200,6 +208,9 @@ class GooglePublisherPlugin {
         break;
       case self::ACTION_VERIFY:
         $this->admin->setShowGetStarted(false);
+        break;
+      case self::ACTION_TRIGGER_UPDATE:
+        $this->updater->doUpdate();
         break;
       case self::CMS_COMMAND_ACTION:
         echo esc_html($this->handleCmsCommandAction());
@@ -217,9 +228,13 @@ class GooglePublisherPlugin {
         basename(dirname(__FILE__)) . '/languages/');
     $this->configuration = new GooglePublisherPluginConfiguration();
 
+    $this->updater = new GooglePublisherPluginUpdater($this->configuration);
+
     if (is_admin()) {
       $this->admin = new GooglePublisherPluginAdmin(
           self::PLUGIN_VERSION, $this->configuration);
+      $this->notifier = new GooglePublisherPluginNotifier($this->configuration);
+      $this->notifier->notify();
     }
     $action = null;
     if (array_key_exists(self::API_URL_PARAMETER, $_REQUEST)) {

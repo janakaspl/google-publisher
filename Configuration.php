@@ -37,22 +37,20 @@ class GooglePublisherPluginConfiguration {
   /** Name used to store the plugin's version in WordPress option table. */
   const PLUGIN_VERSION_KEY = 'GooglePublisherPlugin_Version';
 
-  /** Key used for root entry in $this->options. */
+  /** Keys used for root entries in options. */
   const SITE_VERIFICATION_TOKEN_KEY = 'token';
-
-  /** Key used for root entry in $this->options. */
   const SITE_ID_KEY = 'siteId';
-
-  /** Key used for root entry in $this->options. */
   const TAGS_CONFIGURATION_KEY = 'tags';
+  const NOTIFICATION_KEY = 'notification';
+  const CMS_COMMAND_SUCCESS = 'GooglePublisherPluginCmsCommandStatus::OK';
 
   public function __construct() {
-    $this->options = get_option(self::OPTIONS_NAME);
     $this->createMissingDefaultOptions();
   }
 
   public function get() {
-    return $this->options[self::TAGS_CONFIGURATION_KEY];
+    $option = get_option(self::OPTIONS_NAME);
+    return $option[self::TAGS_CONFIGURATION_KEY];
   }
 
   /**
@@ -60,14 +58,22 @@ class GooglePublisherPluginConfiguration {
    *
    * @param string $page_type The page type to get the tag for.
    * @param string $position The position to get the tag for.
+   * @param string $current_theme_hash The current theme hash.
    * @return string The tag to embed, or an empty string if none is set.
    */
-  public function getTag($page_type, $position) {
-    foreach ($this->options[self::TAGS_CONFIGURATION_KEY] as $tag) {
+  public function getTag($page_type, $position, $current_theme_hash) {
+    $option = get_option(self::OPTIONS_NAME);
+    foreach ($option[self::TAGS_CONFIGURATION_KEY] as $tag) {
       if (array_key_exists('pageType', $tag) &&
           $tag['pageType'] == $page_type &&
           array_key_exists('position', $tag) && $tag['position'] == $position &&
           array_key_exists('code', $tag)) {
+        // If an expected theme hash was specifed then skip this tag if the
+        // current theme hash doesn't match.
+        if (array_key_exists('expectedCmsThemeHash', $tag) &&
+            $tag['expectedCmsThemeHash'] !== $current_theme_hash) {
+          continue;
+        }
         return $tag['code'];
       }
     }
@@ -77,28 +83,48 @@ class GooglePublisherPluginConfiguration {
   /**
    * Stores the latest site config.
    *
-   * @return string 'OK' on success, or a string describing the error
-   *     on failure.
+   * @return string 'GooglePublisherPluginCmsCommandStatus::OK' on success,
+   *     or a string describing the error on failure.
    */
   public function updateConfig($jsonEncodedConfig) {
     $decoded = json_decode($jsonEncodedConfig, true);
     if ($decoded === null) {
-      return 'Failed to decode configuration (invalid JSON)';
+      return 'Failed to decode site config (invalid JSON)';
     }
     if (!is_array($decoded)) {
-      return 'Unexpected object received (array expected)';
+      return 'Unexpected site config received (array expected)';
     }
+
     if (array_key_exists('tags', $decoded)) {
       $tags = $decoded['tags'];
+      if (!is_array($tags)) {
+        return 'Unexpected tags received (array expected)';
+      }
     } else {
       $tags = array();
     }
-    if (!is_array($tags)) {
-      return 'Unexpected tags received (array expected)';
+
+    if (array_key_exists('notification', $decoded)) {
+      $notification = $decoded['notification'];
+      if (!is_array($notification)) {
+        return 'Unexpected notification received (array expected)';
+      }
+      if (array_key_exists('status', $notification)) {
+        $notificationStatus = $notification['status'];
+      } else {
+        return 'Notification status missing';
+      }
     }
-    $this->options[self::TAGS_CONFIGURATION_KEY] = $tags;
-    update_option(self::OPTIONS_NAME, $this->options);
-    return 'OK';
+
+    $option = get_option(self::OPTIONS_NAME);
+    if (isset($tags)) {
+      $option[self::TAGS_CONFIGURATION_KEY] = $tags;
+    }
+    if (isset($notificationStatus)) {
+      $option[self::NOTIFICATION_KEY] = $notificationStatus;
+    }
+    update_option(self::OPTIONS_NAME, $option);
+    return self::CMS_COMMAND_SUCCESS;
   }
 
   /**
@@ -106,25 +132,32 @@ class GooglePublisherPluginConfiguration {
    * allows multiple tokens to be set.
    *
    * @param string $token The token to add.
+   * @return boolean True on success, false otherwise.
    */
   public function writeSiteVerificationToken($token) {
-    array_push($this->options[self::SITE_VERIFICATION_TOKEN_KEY], $token);
-    update_option(self::OPTIONS_NAME, $this->options);
-    /*
-     * Clears the WordPress object cache whenever we change the site
-     * verification token.
-     *
-     * (http://codex.wordpress.org/Class_Reference/WP_Object_Cache).
-     * Usually, WP object cache is cleared after each request. But some
-     * cache plugins, e.g., batcache, keep cached object persistent across
-     * requests. The cache buster URL parameter does not help in this situation.
-     * But it does help over the page level cache, e.g., in W3 Total Cache.
-     *
-     * Plugins are free to cache under whatever namespace and key, there is
-     * no way for us to know which cached object corresponds to the HTML
-     * head. So we have to clear everything.
-     */
-    wp_cache_flush();
+    $option = get_option(self::OPTIONS_NAME);
+    array_push($option[self::SITE_VERIFICATION_TOKEN_KEY], $token);
+    if (update_option(self::OPTIONS_NAME, $option)) {
+      /*
+       * Clears the WordPress object cache whenever we change the site
+       * verification token.
+       *
+       * (http://codex.wordpress.org/Class_Reference/WP_Object_Cache).
+       * Usually, WP object cache is cleared after each request. But some
+       * cache plugins, e.g., batcache, keep cached object persistent across
+       * requests. The cache buster URL parameter does not help in this
+       * situation. But it does help over the page level cache, e.g., in W3
+       * Total Cache.
+       *
+       * Plugins are free to cache under whatever namespace and key, there is
+       * no way for us to know which cached object corresponds to the HTML
+       * head. So we have to clear everything.
+       */
+      wp_cache_flush();
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -133,17 +166,28 @@ class GooglePublisherPluginConfiguration {
    * @return array An array of tokens, or an empty array if none was set.
    */
   public function getSiteVerificationTokens() {
-    return $this->options[self::SITE_VERIFICATION_TOKEN_KEY];
+    $option = get_option(self::OPTIONS_NAME);
+    return $option[self::SITE_VERIFICATION_TOKEN_KEY];
   }
 
   /**
    * Writes the site ID to the configuration.
    *
    * @param string $id The site ID to set.
+   * @return boolean True on success, false otherwise.
    */
   public function writeSiteId($id) {
-    $this->options[self::SITE_ID_KEY] = $id;
-    update_option(self::OPTIONS_NAME, $this->options);
+    $option = get_option(self::OPTIONS_NAME);
+    if ($option[self::SITE_ID_KEY] === $id) {
+      return true;
+    }
+
+    $option[self::SITE_ID_KEY] = $id;
+    if (update_option(self::OPTIONS_NAME, $option)) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -152,21 +196,50 @@ class GooglePublisherPluginConfiguration {
    * @return string|null The site ID, or null if none was set.
    */
   public function getSiteId() {
-    return $this->options[self::SITE_ID_KEY];
+    $option = get_option(self::OPTIONS_NAME);
+    return $option[self::SITE_ID_KEY];
   }
 
   /**
-   * Creates the missing entries in $this->options.
+   * Gets the notification status.
+   *
+   * @return string|null The notification status, or null if none was set.
+   */
+  public function getNotification() {
+    $option = get_option(self::OPTIONS_NAME);
+    return $option[self::NOTIFICATION_KEY];
+  }
+
+  /**
+   * Writes the notification status.
+   *
+   * @param string $notification The notification status to set.
+   * @return boolean True on success, false otherwise.
+   */
+  public function writeNotification($notification) {
+    $option = get_option(self::OPTIONS_NAME);
+    if ($option[self::NOTIFICATION_KEY] === $notification) {
+      return true;
+    }
+    $option[self::NOTIFICATION_KEY] = $notification;
+    return update_option(self::OPTIONS_NAME, $option);
+  }
+
+  /**
+   * Creates the missing entries in options.
    */
   private function createMissingDefaultOptions() {
-    if (empty($this->options)) {
-      $this->options = array();
+    $option = get_option(self::OPTIONS_NAME);
+    if (empty($option)) {
+      $option = array();
     }
     $default_values = array(
         self::SITE_VERIFICATION_TOKEN_KEY => array(),
         self::SITE_ID_KEY => null,
-        self::TAGS_CONFIGURATION_KEY => array());
+        self::TAGS_CONFIGURATION_KEY => array(),
+        self::NOTIFICATION_KEY => null);
 
-    $this->options = array_merge($default_values, $this->options);
+    $option = array_merge($default_values, $option);
+    update_option(self::OPTIONS_NAME, $option);
   }
 }
