@@ -51,6 +51,12 @@ At this time, the Google Publisher Plugin cannot be used on WordPress.com.
 
 == Changelog ==
 
+= 27 May 2014, Plugin version 0.2.0 =
+* A notification will now be shown on the WordPress dashboard when one or more ads are not appearing correctly (for example, because the theme has changed). Note that these notifications are currently only updated once a day.
+* Ads will now only be shown on the theme they were placed on. For example, when a separate theme is used for mobile devices, ads will no longer be shown on that theme.
+* Fixed an incompatibility with a number of other plugins.
+* Extended the nonce lifetime, which should reduce the number of failed saves.
+
 = 1 May 2014 =
 The following changes do not require a plugin update, and were fixed server-side.
 
