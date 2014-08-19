@@ -4,7 +4,7 @@ Plugin Name: Google Publisher Plugin
 Plugin URI: http://wordpress.org/plugins/google-publisher
 Description: Use Google AdSense and other Google tools with your WordPress site.
 Author: Google
-Version: 0.2.0
+Version: 0.3.0
 Author URI: https://support.google.com/adsense/answer/3380626
 License: GPL2
 Text Domain: google-publisher-plugin
@@ -53,7 +53,7 @@ GooglePublisherPlugin::$basename =
 class GooglePublisherPlugin {
   public static $basename;
 
-  const PLUGIN_VERSION = '0.2.0';
+  const PLUGIN_VERSION = '0.3.0';
 
   private $admin;
   private $configuration;
@@ -114,6 +114,7 @@ class GooglePublisherPlugin {
 
   const CMS_COMMAND_SET_SITE_CONFIG = 'set_site_config';
   const CMS_COMMAND_WRITE_SITE_DATA = 'write_site_data';
+  const CMS_COMMAND_CHECK_UPDATE_SUPPORT = 'check_update_support';
   const CMS_COMMAND = 'command';
   const CMS_COMMAND_PARAM = 'param';
   const CMS_COMMAND_SUCCESS = 'GooglePublisherPluginCmsCommandStatus::OK';
@@ -132,24 +133,56 @@ class GooglePublisherPlugin {
       GooglePublisherPluginUtils::dieSilently();
       return;
     }
-    if (!array_key_exists(self::CMS_COMMAND_PARAM, $_REQUEST)) {
-      return 'Missing param';
-    }
-    $param = $_REQUEST[self::CMS_COMMAND_PARAM];
-    // If magic quotes are enabled we need to undo what it did.
-    if (get_magic_quotes_gpc()) {
-      $param = stripslashes($param);
-    }
+    $param = $this->getCommandParam();
     if (array_key_exists(self::CMS_COMMAND, $_REQUEST)) {
       switch ($_REQUEST[self::CMS_COMMAND]) {
+        // @codingStandardsIgnoreStart
         case self::CMS_COMMAND_SET_SITE_CONFIG:
+          if (is_null($param)) {
+            return 'Missing param';
+          }
           return $this->configuration->updateConfig($param);
         case self::CMS_COMMAND_WRITE_SITE_DATA:
+          if (is_null($param)) {
+            return 'Missing param';
+          }
           return $this->handleWriteSiteDataAction($param);
+        // @codingStandardsIgnoreEnd
+        case self::CMS_COMMAND_CHECK_UPDATE_SUPPORT:
+          return $this->checkUpdateSupport();
       }
       return 'Unknown command';
     }
     return 'Missing command';
+  }
+
+  private function getCommandParam() {
+    if (array_key_exists(self::CMS_COMMAND_PARAM, $_REQUEST)) {
+      $param = $_REQUEST[self::CMS_COMMAND_PARAM];
+      // If magic quotes are enabled we need to undo what it did.
+      if (get_magic_quotes_gpc()) {
+        $param = stripslashes($param);
+      }
+      return $param;
+    }
+    return null;
+  }
+
+  /**
+   * Returns whether push update is supported by trying to reach googleapis.com.
+   */
+  private function checkUpdateSupport() {
+    if (is_null($this->configuration->getUpdateSupport())) {
+      $response = wp_remote_get('https://www.googleapis.com',
+          array('timeout' => 20));
+      if (is_wp_error($response)) {
+        $this->configuration->writeUpdateSupport('false');
+      } else {
+        $this->configuration->writeUpdateSupport('true');
+      }
+    }
+    return self::CMS_COMMAND_SUCCESS . '::' .
+        $this->configuration->getUpdateSupport();
   }
 
   private function handleWriteSiteDataAction($jsonEncodedSiteData) {

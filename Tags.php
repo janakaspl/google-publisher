@@ -30,9 +30,15 @@ class GooglePublisherPluginTags {
   // Url parameter specifying whether to send page details in the WordPress
   // responses, both as metadata and in the HTTP header.
   const SEND_PAGE_DETAILS = 'google_publisher_plugin_page_details';
+  const PAGE_TYPE_META_TAG_NAME = 'google-publisher-plugin-pagetype';
+  const EXCLUDE_ADS_META_TAG_NAME = 'google-publisher-plugin-exclude-ads';
+
+  const THEME_HASH_HTTP_HEADER = 'GOOGLE-PUBLISHER-PLUGIN-THEME-HASH';
+  const VERSION_HTTP_HEADER = 'X-Google-Publisher-Plugin-Version';
 
   private $configuration;
   private $current_page_type;
+  private $exclude_ads;
   private $theme_hash;
   private $send_page_details;
 
@@ -52,8 +58,9 @@ class GooglePublisherPluginTags {
     // To determine the current page type, WordPress needs to have
     // initialized wp_query. The template_redirect hook is the first
     // action hook after that initialization.
-    add_action('template_redirect', array($this, 'determineCurrentPageType'));
-    add_action('send_headers', array($this, 'computeThemeHashAndSetHeader'),
+    add_action('template_redirect', array($this,
+        'determineCurrentPageDetails'));
+    add_action('send_headers', array($this, 'computeThemeHashAndSetHeaders'),
         PHP_INT_MAX);
 
     if ($preview_mode || $this->send_page_details) {
@@ -73,24 +80,31 @@ class GooglePublisherPluginTags {
    * the wp_head action hook.
    */
   public function printPageDetails() {
-    printf('<meta name="google-publisher-plugin-pagetype" content="%s">',
-        $this->current_page_type);
+    printf('<meta name="%s" content="%s">', self::PAGE_TYPE_META_TAG_NAME,
+           htmlspecialchars($this->current_page_type));
+    if ($this->exclude_ads) {
+      printf('<meta name="%s" content="true">',
+          self::EXCLUDE_ADS_META_TAG_NAME);
+    }
   }
 
   /**
    * Computes an opaque ID for the current Theme.
    *
-   * If the request is flagged to send_page_details then set a header containing
-   * the current theme hash.  This is stored by the Google Publisher Plugin in
-   * the ad configuration so the php plugin can detect if the theme has changed
-   * at serving time, and turn off ads if needed.
+   * If the request is flagged to send_page_details then send headers containing
+   * the current theme hash and plugin version. The theme hash is stored by the
+   * Google Publisher Plugin in the ad configuration so the php plugin can
+   * detect if the theme has changed at serving time, and turn off ads if
+   * needed.
    */
-  public function computeThemeHashAndSetHeader() {
+  public function computeThemeHashAndSetHeaders() {
     $this->theme_hash = $this->computeThemeHash();
 
     if ($this->send_page_details) {
-      $this->emitHttpHeader('GOOGLE-PUBLISHER-PLUGIN-THEME-HASH: ' .
+      $this->emitHttpHeader(self::THEME_HASH_HTTP_HEADER . ': ' .
           $this->theme_hash);
+      $this->emitHttpHeader(self::VERSION_HTTP_HEADER . ': ' .
+          GooglePublisherPlugin::PLUGIN_VERSION);
     }
   }
 
@@ -117,6 +131,9 @@ class GooglePublisherPluginTags {
    * action hook.
    */
   public function wpHead() {
+    if ($this->exclude_ads) {
+      return;
+    }
     // Inserts a js script tag which don't need escaping.
     echo $this->configuration->getTag(
         $this->current_page_type, 'head', $this->theme_hash);
@@ -130,6 +147,9 @@ class GooglePublisherPluginTags {
    *         current configuration.
    */
   public function wpRepeating($content) {
+    if ($this->exclude_ads) {
+      return $content;
+    }
     $repeatingTag = $this->configuration->getTag(
         $this->current_page_type, 'repeating', $this->theme_hash);
 
@@ -141,6 +161,9 @@ class GooglePublisherPluginTags {
    * wp_footer action hook.
    */
   public function wpFooter() {
+    if ($this->exclude_ads) {
+      return;
+    }
     // Inserts js script tags which don't need escaping.
     echo $this->configuration->getTag(
         $this->current_page_type, 'repeating', $this->theme_hash);
@@ -149,13 +172,17 @@ class GooglePublisherPluginTags {
   }
 
   /**
-   * Determines the current page type. This should be called after WordPress
+   * Determines the current page details. This should be called after WordPress
    * has initialized wp_query.
    */
-  public function determineCurrentPageType() {
+  public function determineCurrentPageDetails() {
     if (!isset($this->current_page_type)) {
       $this->current_page_type =
           GooglePublisherPluginUtils::getWordPressPageType();
+    }
+    if (!isset($this->exclude_ads)) {
+      $this->exclude_ads =
+          GooglePublisherPluginUtils::getExcludeAds();
     }
   }
 

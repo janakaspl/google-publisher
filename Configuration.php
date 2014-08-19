@@ -42,19 +42,26 @@ class GooglePublisherPluginConfiguration {
   const SITE_ID_KEY = 'siteId';
   const TAGS_CONFIGURATION_KEY = 'tags';
   const NOTIFICATION_KEY = 'notification';
+  const UPDATE_SUPPORT_KEY = 'updateSupport'; // 'true' or 'false'.
+
   const CMS_COMMAND_SUCCESS = 'GooglePublisherPluginCmsCommandStatus::OK';
 
   public function __construct() {
     $this->createMissingDefaultOptions();
   }
 
+  /**
+   * Gets the stored site config. This should only be called when the
+   * GooglePublisherPlugin option already exists.
+   */
   public function get() {
     $option = get_option(self::OPTIONS_NAME);
     return $option[self::TAGS_CONFIGURATION_KEY];
   }
 
   /**
-   * Gets a tag to embed on the given page type, at the given position.
+   * Gets a tag to embed on the given page type, at the given position. This
+   * should only be called when the GooglePublisherPlugin option already exists.
    *
    * @param string $page_type The page type to get the tag for.
    * @param string $position The position to get the tag for.
@@ -68,7 +75,7 @@ class GooglePublisherPluginConfiguration {
           $tag['pageType'] == $page_type &&
           array_key_exists('position', $tag) && $tag['position'] == $position &&
           array_key_exists('code', $tag)) {
-        // If an expected theme hash was specifed then skip this tag if the
+        // If an expected theme hash was specified then skip this tag if the
         // current theme hash doesn't match.
         if (array_key_exists('expectedCmsThemeHash', $tag) &&
             $tag['expectedCmsThemeHash'] !== $current_theme_hash) {
@@ -81,7 +88,8 @@ class GooglePublisherPluginConfiguration {
   }
 
   /**
-   * Stores the latest site config.
+   * Stores the latest site config. This should only be called when the
+   * GooglePublisherPlugin option already exists.
    *
    * @return string 'GooglePublisherPluginCmsCommandStatus::OK' on success,
    *     or a string describing the error on failure.
@@ -129,7 +137,8 @@ class GooglePublisherPluginConfiguration {
 
   /**
    * Writes the site verification token to the configuration. The configuration
-   * allows multiple tokens to be set.
+   * allows multiple tokens to be set. This should only be called when the
+   * GooglePublisherPlugin option already exists.
    *
    * @param string $token The token to add.
    * @return boolean True on success, false otherwise.
@@ -161,7 +170,8 @@ class GooglePublisherPluginConfiguration {
   }
 
   /**
-   * Gets the site verification tokens from the configuration.
+   * Gets the site verification tokens from the configuration. This should only
+   * be called when the GooglePublisherPlugin option already exists.
    *
    * @return array An array of tokens, or an empty array if none was set.
    */
@@ -171,7 +181,8 @@ class GooglePublisherPluginConfiguration {
   }
 
   /**
-   * Writes the site ID to the configuration.
+   * Writes the site ID to the configuration. This should only be called when
+   * the GooglePublisherPlugin option already exists.
    *
    * @param string $id The site ID to set.
    * @return boolean True on success, false otherwise.
@@ -201,7 +212,8 @@ class GooglePublisherPluginConfiguration {
   }
 
   /**
-   * Gets the notification status.
+   * Gets the notification status. This should only be called when the
+   * GooglePublisherPlugin option already exists.
    *
    * @return string|null The notification status, or null if none was set.
    */
@@ -211,7 +223,8 @@ class GooglePublisherPluginConfiguration {
   }
 
   /**
-   * Writes the notification status.
+   * Writes the notification status. This should only be called when the
+   * GooglePublisherPlugin option already exists.
    *
    * @param string $notification The notification status to set.
    * @return boolean True on success, false otherwise.
@@ -226,7 +239,61 @@ class GooglePublisherPluginConfiguration {
   }
 
   /**
-   * Creates the missing entries in options.
+   * Gets the update support status. This should only be called when the
+   * GooglePublisherPlugin option already exists.
+   *
+   * @return string|null The update support status, or null if none was set.
+   */
+  public function getUpdateSupport() {
+    $option = get_option(self::OPTIONS_NAME);
+    return $option[self::UPDATE_SUPPORT_KEY];
+  }
+
+  /**
+   * Writes the update support status. This should only be called when the
+   * GooglePublisherPlugin option already exists.
+   *
+   * @param string $updateSupport The update support status to set.
+   * @return boolean True on success, false otherwise.
+   */
+  public function writeUpdateSupport($updateSupport) {
+    $option = get_option(self::OPTIONS_NAME);
+    if ($option[self::UPDATE_SUPPORT_KEY] === $updateSupport) {
+      return true;
+    }
+    $option[self::UPDATE_SUPPORT_KEY] = $updateSupport;
+    return update_option(self::OPTIONS_NAME, $option);
+  }
+
+  /**
+   * Gets the current ad tags.
+   *
+   * @return array|null The current tags, or null if none was set.
+   */
+  public function getTags() {
+    $option = get_option(self::OPTIONS_NAME);
+    return $option[self::TAGS_CONFIGURATION_KEY];
+  }
+
+  /**
+   * Writes the ad tags. This should only be called when the
+   * GooglePublisherPlugin option already exists.
+   *
+   * @param string $tags The ad tags to set.
+   * @return boolean True on success, false otherwise.
+   */
+  public function writeTags($tags) {
+    $option = get_option(self::OPTIONS_NAME);
+    if ($option[self::TAGS_CONFIGURATION_KEY] === $tags) {
+      return true;
+    }
+    $option[self::TAGS_CONFIGURATION_KEY] = $tags;
+    return update_option(self::OPTIONS_NAME, $option);
+  }
+
+  /**
+   * Creates the missing entries in options. This should only be called when the
+   * GooglePublisherPlugin option already exists.
    */
   private function createMissingDefaultOptions() {
     $option = get_option(self::OPTIONS_NAME);
@@ -237,7 +304,8 @@ class GooglePublisherPluginConfiguration {
         self::SITE_VERIFICATION_TOKEN_KEY => array(),
         self::SITE_ID_KEY => null,
         self::TAGS_CONFIGURATION_KEY => array(),
-        self::NOTIFICATION_KEY => null);
+        self::NOTIFICATION_KEY => null,
+        self::UPDATE_SUPPORT_KEY => null);
 
     $option = array_merge($default_values, $option);
     update_option(self::OPTIONS_NAME, $option);

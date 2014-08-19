@@ -73,8 +73,9 @@ class GooglePublisherPluginUpdater {
 
     $url = self::SITE_DATA_SERVER_ENDPOINT .
         sprintf(self::SITE_DATA_GET_API_TEMPLATE, $siteId);
-    $response = wp_remote_get($url, array('timeout' => 30));
+    $response = wp_remote_get($url, array('timeout' => 20));
     if (is_wp_error($response)) {
+      $this->configuration->writeUpdateSupport('false');
       $errorMessage = $response->get_error_message();
       if ($errorMessage === __(self::HTTP_BLOCKED_MESSAGE)) {
         return GooglePublisherPluginUpdaterStatus::HTTP_BLOCKED . ':' .
@@ -84,6 +85,7 @@ class GooglePublisherPluginUpdater {
             $errorMessage;
       }
     }
+    $this->configuration->writeUpdateSupport('true');
     $decoded = json_decode(wp_remote_retrieve_body($response), true);
     if (!isset($decoded)) {
       return GooglePublisherPluginUpdaterStatus::INVALID_JSON;
@@ -105,15 +107,32 @@ class GooglePublisherPluginUpdater {
     if ($httpStatus !== '200' && $httpStatus !== 200) {
       return GooglePublisherPluginUpdaterStatus::HTTP_ERROR . ':' . $httpStatus;
     }
-    return $this->parseAndSaveNotification($decoded);
+    return $this->parseAndSaveNotificationAndConfiguration($decoded);
   }
 
   /**
-   * Parses and saves notification.
+   * Parses and saves notification, and tags if present.
    *
    * @return OK on success, an error on failure.
    */
-  private function parseAndSaveNotification($decoded) {
+  private function parseAndSaveNotificationAndConfiguration($decoded) {
+    if (array_key_exists('configuration', $decoded)) {
+      $configuration = $decoded['configuration'];
+      if (!is_array($configuration)) {
+        return GooglePublisherUpdaterPluginStatus::INVALID_CONFIG .
+            ':unexpected configuration received (array expected)';
+      }
+      if (array_key_exists('tags', $configuration)) {
+        $tags = $configuration['tags'];
+        if (!is_array($tags)) {
+          return GooglePublisherPluginUpdaterStatus::INVALID_NOTIFICATION .
+              'Unexpected tags received (array expected)';
+        }
+        if (!$this->configuration->writeTags($tags)) {
+          return GooglePublisherPluginUpdaterStatus::WORDPRESS_ERROR;
+        }
+      }
+    }
     if (!array_key_exists('notification', $decoded)) {
       return GooglePublisherPluginUpdaterStatus::OK;
     }

@@ -37,6 +37,9 @@ class GooglePublisherPluginAdmin {
   /** Used to generate and check nonce on the cms command action. */
   const CMS_COMMAND_ACTION = "cms_command_action";
 
+  /** Used to generate and check nonce on the metabox. */
+  const METABOX_ACTION = "disable_ads_metabox_action";
+
   /** A relative URL to plugin administration page. */
   const ADMIN_PAGE_LOCATION = 'options-general.php?page=GooglePublisherPlugin';
 
@@ -50,6 +53,10 @@ class GooglePublisherPluginAdmin {
     $this->plugin_version = $plugin_version;
     $this->configuration = $configuration;
     add_action('admin_menu', array($this, 'addAdminMenu'));
+    if (count($configuration->get()) > 0) {
+      add_action('add_meta_boxes', array($this, 'addPageEditOptions'));
+      add_action('save_post', array($this, 'savePageEditOptions'));
+    }
     add_filter(
         'plugin_action_links_' . GooglePublisherPlugin::$basename,
         array($this, 'addSettingsLink'), 10, 1);
@@ -66,6 +73,7 @@ class GooglePublisherPluginAdmin {
     $environment['pluginVersion'] = $this->plugin_version;
     $environment['wpVersion'] = $wp_version;
     $environment['hl'] = get_locale();
+    $environment['updateSupport'] = $this->configuration->getUpdateSupport();
     return $environment;
   }
 
@@ -77,6 +85,46 @@ class GooglePublisherPluginAdmin {
         'GooglePublisherPlugin', array($this, 'onAdminMenu'));
      // Only enqueue the admin CSS on the Google Publisher Plugin admin page.
      add_action('admin_print_styles-' . $page, array($this, 'enqueueAdminCss'));
+  }
+
+  public function addPageEditOptions() {
+    add_meta_box('googlePublisherPluginMetaBox', 'Google Publisher Plugin',
+        array($this, 'showPageEditOptions'), 'page', 'side', 'low');
+  }
+
+  public function showPageEditOptions() {
+    global $post;
+    $exclude_ads = get_post_meta($post->ID,
+        GooglePublisherPluginUtils::EXCLUDE_ADS_METADATA, true);
+    wp_nonce_field(self::METABOX_ACTION, 'gppMetaboxNonce');
+
+    if ($exclude_ads) {
+      $exclude_checked = ' checked';
+    } else {
+      $exclude_checked = '';
+    }
+    echo '<input type="checkbox" name="gppDisableAds"',
+        ' id="google-publisher-plugin-disable-ads" value="yes"',
+        $exclude_checked, '/>',
+        __('Disable ads on this page', 'google-publisher-plugin');
+  }
+
+  public function savePageEditOptions($post_id) {
+    // If googlePublisherPluginMetabox has not been inserted then the nonce will
+    // not have been set and the function should return.
+    if (!wp_verify_nonce($_POST['gppMetaboxNonce'], self::METABOX_ACTION)) {
+      return;
+    } else if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+      return;
+    } else if (!current_user_can('edit_page', $post_id)) {
+      return;
+    } else if ($_POST['gppDisableAds'] == 'yes') {
+      update_post_meta($post_id,
+          GooglePublisherPluginUtils::EXCLUDE_ADS_METADATA, true);
+    } else {
+      delete_post_meta($post_id,
+          GooglePublisherPluginUtils::EXCLUDE_ADS_METADATA);
+    }
   }
 
   public function onAdminMenu() {

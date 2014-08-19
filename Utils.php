@@ -30,6 +30,9 @@ class GooglePublisherPluginUtils {
 
   const MINIMUM_PHP_VERSION = '5.2.0';
 
+  /** The metadata key to add into the wp database to exclude ads. */
+  const EXCLUDE_ADS_METADATA = 'GooglePublisherPlugin_ExcludeAds';
+
   /**
    * Gets the page type from WordPress.
    *
@@ -74,6 +77,16 @@ class GooglePublisherPluginUtils {
   }
 
   /**
+   * Finds if metadata for the page has been set excluding ads.
+   *
+   * @return boolean Whether metadata has been set to exclude ads.
+   */
+  public static function getExcludeAds() {
+    return get_post_meta(get_the_ID(), self::EXCLUDE_ADS_METADATA, true) ==
+        true;
+  }
+
+  /**
    * @return array An array of URLs to be analyzed. The number of
    *     URLs varies based on the WordPress configuration.
    */
@@ -93,20 +106,13 @@ class GooglePublisherPluginUtils {
       $urls['postsUrl'] = $postsUrl;
     }
 
-    $pages = get_pages(array('meta_key' => '_wp_page_template'));
-    $customPageTemplates = array();
-    foreach ($pages as $page) {
-      $pageUrl = esc_url(get_permalink($page->ID));
-      if ($pageUrl == $siteUrl || $pageUrl == $postsUrl) {
-        continue;
-      }
-      if ($page->meta_value == 'default') {
-        $urls['latestSinglePageUrl'] = $pageUrl;
-      } else {
-        // Note meta_value is the file name of the _wp_page_template
-        $customPageTemplates[$page->meta_value] = $pageUrl;
-      }
+    $customPageTemplates = self::getCustomPageTemplates($siteUrl, $postsUrl);
+
+    if (isset($customPageTemplates['default'])) {
+      $urls['latestSinglePageUrl'] = $customPageTemplates['default'];
+      unset($customPageTemplates['default']);
     }
+
     if (!empty($customPageTemplates)) {
       $urls['customPageTemplateUrlMap'] = $customPageTemplates;
     }
@@ -126,7 +132,7 @@ class GooglePublisherPluginUtils {
     return $urls;
   }
 
-  static function getFrontPageUrl() {
+  public static function getFrontPageUrl() {
     return trailingslashit(get_home_url());
   }
 
@@ -134,7 +140,7 @@ class GooglePublisherPluginUtils {
    * Returns the permalink URL of the latest post if one exists.
    * Otherwise returns ''.
    */
-  static function getLatestPostUrl() {
+  public static function getLatestPostUrl() {
     $result = self::getRecentPosts('post', 1);
     if (is_array($result) && !empty($result)) {
       return esc_url(get_permalink($result[0]->ID));
@@ -146,7 +152,7 @@ class GooglePublisherPluginUtils {
    * Returns the permalink URL of the posts page, aka, the (blog) home page,
    * if one exists. Otherwise returns ''.
    */
-  static function getPostsUrl() {
+  public static function getPostsUrl() {
     if (get_option('show_on_front') == 'page') {
       $postsPageId = get_option('page_for_posts');
       return esc_url(get_permalink($postsPageId));
@@ -155,9 +161,40 @@ class GooglePublisherPluginUtils {
   }
 
   /**
+   * @return array A mapping of all of the page templates in use and an example
+   *     page of each one. Pages with ads showing are preferred over pages with
+   *     ads excluded.
+   */
+  private static function getCustomPageTemplates($siteUrl, $postsUrl) {
+    $pages = get_pages(array('meta_key' => '_wp_page_template'));
+    $customPageTemplates = array();
+    $templatesWithExclusions = array();
+    foreach ($pages as $page) {
+      $pageUrl = esc_url(get_permalink($page->ID));
+      if ($pageUrl == $siteUrl || $pageUrl == $postsUrl) {
+        continue;
+      }
+      $pageTemplate = $page->meta_value;
+      $pageWithExclusions = get_post_meta($page->ID,
+          self::EXCLUDE_ADS_METADATA, true);
+      if (!isset($templatesWithExclusions[$pageTemplate])) {
+        $templatesWithExclusions[$pageTemplate] = true;
+      }
+      // Note meta_value is the file name of the _wp_page_template
+      if (!$pageWithExclusions) {
+        $templatesWithExclusions[$pageTemplate] = false;
+        $customPageTemplates[$page->meta_value] = $pageUrl;
+      } else if ($templatesWithExclusions[$pageTemplate]) {
+        $customPageTemplates[$page->meta_value] = $pageUrl;
+      }
+    }
+    return $customPageTemplates;
+  }
+
+  /**
    * Returns a latest monthly archive URL if one exists. Otherwise returns ''.
    */
-  static function getLatestArchiveUrl() {
+  public static function getLatestArchiveUrl() {
     $link = wp_get_archives(array('format' => 'link', 'echo' => 0,
         'limit' => 1, 'order' => 'DESC'));
     preg_match('/href\s*=\s*[\'\"]([^\'\"]+)[\'\"]/', $link, $matches);
@@ -171,7 +208,7 @@ class GooglePublisherPluginUtils {
   /**
    * Returns a category URL if one exists. Otherwise returns ''.
    */
-  static function getCategoryUrl() {
+  public static function getCategoryUrl() {
     $category = array_values(get_categories(array('number' => 1)));
     if (sizeof($category) == 1) {
       $categoryUrl = get_category_link($category[0]->term_id);
@@ -187,7 +224,7 @@ class GooglePublisherPluginUtils {
    * @param string $type The type of posts to retrieve.
    * @param int $number The number of posts to retrieve.
    */
-  private static function getRecentPosts($type, $number) {
+  public static function getRecentPosts($type, $number) {
     return get_posts(array('numberposts' => $number,
         'orderby' => 'post_date', 'order' => 'DESC', 'post_type' => $type,
         'post_status' => 'publish', 'suppress_filters' => true));
