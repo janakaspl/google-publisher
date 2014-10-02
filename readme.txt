@@ -89,14 +89,20 @@ All plugins and placements must still adhere to the [AdSense Terms and Condition
 
 == Changelog ==
 
+= 2 October 2014 =
+The following changes do not require a plugin update, and were fixed server-side.
+
+* Added more ad placements options between sidebar widgets.
+* Fixed a common incompatibility with the "WordPress SEO by Yoast" plugin. This bug made page analysis fail with a "cache error" when the date-based archives were disabled.
+
 = 19 Aug 2014, Plugin version 0.3.0  =
 * [Exclude pages](https://support.google.com/adsense/answer/6023216#disable) from having ads on them.
-* Support to deliver ad layout updates from Google, for example, for fixing broken layouts.
+* Support to deliver ad layout updates from Google in order to, for example, fix broken layouts.
 
 The following changes do not require a plugin update, and have been fixed server-side.
 
 * Ad placements are automatically populated for each template for new users.
-* [Manually insert ads](https://support.google.com/adsense/answer/6051417?hl=en&ref_topic=3380274) in locations that you determine yourself. This gives you all the power of manually adding ad slots yet still taking advantage of ease of use of the the plugin.
+* [Manually insert ads](https://support.google.com/adsense/answer/6051417?hl=en&ref_topic=3380274) in locations that you determine yourself. This gives you all the power of manually adding ad slots, yet retains the ease of use of the plugin.
 
 = 27 May 2014, Plugin version 0.2.0 =
 * A notification will now be shown on the WordPress dashboard when one or more ads are not appearing correctly (for example, because the theme has changed). Note that these notifications are currently only updated once a day.
