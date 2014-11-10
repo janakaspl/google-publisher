@@ -18,8 +18,8 @@ To insert AdSense ads without the plugin would first involve generating the AdSe
 This version of the Google Publisher Plugin allows you to:
 
 * Easily add AdSense ads to your site to make money from advertising.
-* **NEW** [Manually insert ads](https://support.google.com/adsense/answer/6051417?hl=en&ref_topic=3380274) in locations that you determine yourself. This gives you all the power of manual insertion of snippets while also being able to use the plugin’s great UI. You get full control plus point-and-click.
-* **NEW** [Exclude pages](https://support.google.com/adsense/answer/6023216#disable) from having ads on them.
+* [Manually insert ads](https://support.google.com/adsense/answer/6051417?hl=en&ref_topic=3380274) in locations that you determine yourself. This gives you all the power of manual insertion of snippets while also being able to use the plugin’s great UI. You get full control plus point-and-click.
+* [Exclude pages](https://support.google.com/adsense/answer/6023216#disable) from having ads on them.
 * Verify your site with Webmaster Tools with just one click.
 * Manage your ads quickly and easily through a point-and-click interface.
 
@@ -89,6 +89,13 @@ All plugins and placements must still adhere to the [AdSense Terms and Condition
 
 == Changelog ==
 
+= 10 November 2014 =
+The following changes do not require a plugin update, and were fixed server-side.
+
+* Link units are no longer recognized as regular ad units by the plugin. This makes it possible to place three ads on a template using the plugin regardless of the number of link units.
+* It is now possible to temporarily place more than three ads per template in design mode. The additional ad units must be removed before saving.
+* Fixed a bug that made it impossible to remove or modify a placement placed above a paragraph that no longer existed. Posts and pages with a small number of paragraphs will now have additional placeholder paragraphs in design mode.
+
 = 2 October 2014 =
 The following changes do not require a plugin update, and were fixed server-side.
 
@@ -138,3 +145,6 @@ The following changes do not require a plugin update, and were fixed server-side
 
 The plugin source code is GPL, however use of Google Services through the plugin is governed by [Google's Terms of Service](http://www.google.com/policies/terms/) and [Privacy Policy](http://www.google.com/policies/privacy/). For products and services that can be used with the Google Publisher Plugin, such as AdSense, additional Terms of Service may also apply.
 
+== HTML5 Local Storage ==
+
+Google uses HTML5 Local Storage in the end-user's browser to record which kind of ad layout it serves to each browser; this includes the number of ads served and their position on the site. This helps Google compare ad performance across different ad layouts. The information is anonymous and is not personally identifiable. Do not use this Google-managed value for your own tracking; it may prevent the plugin from gathering reliable data about ad layouts. Your site should already include the appropriate disclosures about cookie usage, but please ensure that you [make the disclosures required by AdSense terms and conditions](https://support.google.com/adsense/answer/1348695).
