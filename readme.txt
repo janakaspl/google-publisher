@@ -30,7 +30,7 @@ This version of the AdSense Plugin allows you to:
 
 Also see the [AdSense help documentation on installing the AdSense Plugin](https://support.google.com/adsense/answer/3380627).
 
-After installation, you can [set up the plugin]((https://support.google.com/adsense/answer/3380277)).
+After installation, you can [set up the plugin](https://support.google.com/adsense/answer/3380277).
 
 Make sure you meet the minimum system requirements.
 
