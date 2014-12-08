@@ -1,10 +1,10 @@
 <?php
 /*
-Plugin Name: Google Publisher Plugin
+Plugin Name: Google AdSense
 Plugin URI: http://wordpress.org/plugins/google-publisher
 Description: Use Google AdSense and other Google tools with your WordPress site.
 Author: Google
-Version: 0.3.0
+Version: 1.0.0
 Author URI: https://support.google.com/adsense/answer/3380626
 License: GPL2
 Text Domain: google-publisher-plugin
@@ -12,20 +12,20 @@ Text Domain: google-publisher-plugin
 /*
 Copyright 2013 Google Inc. All Rights Reserved.
 
-This file is part of the Google Publisher Plugin.
+This file is part of the AdSense Plugin.
 
-The Google Publisher Plugin is free software:
+The AdSense Plugin is free software:
 you can redistribute it and/or modify it under the terms of the
 GNU General Public License as published by the Free Software Foundation,
 either version 2 of the License, or (at your option) any later version.
 
-The Google Publisher Plugin is distributed in the hope that it
+The AdSense Plugin is distributed in the hope that it
 will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
 Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with the Google Publisher Plugin.
+along with the AdSense Plugin.
 If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -47,13 +47,13 @@ GooglePublisherPlugin::$basename =
     plugin_basename($google_publisher_plugin_file);
 
 /**
- * This class is the main class of the Google Publisher Plugin. It manages
+ * This class is the main class of the AdSense Plugin. It manages
  * initialization of other classes, URL parameters and site verification.
  */
 class GooglePublisherPlugin {
   public static $basename;
 
-  const PLUGIN_VERSION = '0.3.0';
+  const PLUGIN_VERSION = '1.0.0';
 
   private $admin;
   private $configuration;
@@ -128,7 +128,7 @@ class GooglePublisherPlugin {
   public function handleCmsCommandAction() {
     GooglePublisherPluginUtils::checkAdminRights();
     // Reject invalid nonces.
-    if (!wp_verify_nonce($_REQUEST['_wpnonce'],
+    if (!isset($_REQUEST['_wpnonce']) || !wp_verify_nonce($_REQUEST['_wpnonce'],
         GooglePublisherPluginAdmin::CMS_COMMAND_ACTION)) {
       GooglePublisherPluginUtils::dieSilently();
       return;
@@ -149,7 +149,8 @@ class GooglePublisherPlugin {
           return $this->handleWriteSiteDataAction($param);
         // @codingStandardsIgnoreEnd
         case self::CMS_COMMAND_CHECK_UPDATE_SUPPORT:
-          return $this->checkUpdateSupport();
+          return self::CMS_COMMAND_SUCCESS . '::' .
+              $this->updater->getUpdateSupport();
       }
       return 'Unknown command';
     }
@@ -166,23 +167,6 @@ class GooglePublisherPlugin {
       return $param;
     }
     return null;
-  }
-
-  /**
-   * Returns whether push update is supported by trying to reach googleapis.com.
-   */
-  private function checkUpdateSupport() {
-    if (is_null($this->configuration->getUpdateSupport())) {
-      $response = wp_remote_get('https://www.googleapis.com',
-          array('timeout' => 20));
-      if (is_wp_error($response)) {
-        $this->configuration->writeUpdateSupport('false');
-      } else {
-        $this->configuration->writeUpdateSupport('true');
-      }
-    }
-    return self::CMS_COMMAND_SUCCESS . '::' .
-        $this->configuration->getUpdateSupport();
   }
 
   private function handleWriteSiteDataAction($jsonEncodedSiteData) {

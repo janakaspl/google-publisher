@@ -2,20 +2,20 @@
 /*
 Copyright 2013 Google Inc. All Rights Reserved.
 
-This file is part of the Google Publisher Plugin.
+This file is part of the AdSense Plugin.
 
-The Google Publisher Plugin is free software:
+The AdSense Plugin is free software:
 you can redistribute it and/or modify it under the terms of the
 GNU General Public License as published by the Free Software Foundation,
 either version 2 of the License, or (at your option) any later version.
 
-The Google Publisher Plugin is distributed in the hope that it
+The AdSense Plugin is distributed in the hope that it
 will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
 Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with the Google Publisher Plugin.
+along with the AdSense Plugin.
 If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -80,7 +80,7 @@ class GooglePublisherPluginAdmin {
   public function addAdminMenu() {
     $page = add_options_page(
         'Options',
-        'Google Publisher Plugin',
+        'AdSense',
         'manage_options',
         'GooglePublisherPlugin', array($this, 'onAdminMenu'));
      // Only enqueue the admin CSS on the Google Publisher Plugin admin page.
@@ -112,13 +112,15 @@ class GooglePublisherPluginAdmin {
   public function savePageEditOptions($post_id) {
     // If googlePublisherPluginMetabox has not been inserted then the nonce will
     // not have been set and the function should return.
-    if (!wp_verify_nonce($_POST['gppMetaboxNonce'], self::METABOX_ACTION)) {
+    if (!isset($_POST['gppMetaboxNonce']) ||
+        !wp_verify_nonce($_POST['gppMetaboxNonce'], self::METABOX_ACTION)) {
       return;
     } else if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
       return;
     } else if (!current_user_can('edit_page', $post_id)) {
       return;
-    } else if ($_POST['gppDisableAds'] == 'yes') {
+    } else if (isset($_POST['gppDisableAds']) &&
+        $_POST['gppDisableAds'] == 'yes') {
       update_post_meta($post_id,
           GooglePublisherPluginUtils::EXCLUDE_ADS_METADATA, true);
     } else {

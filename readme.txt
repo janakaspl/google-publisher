@@ -1,4 +1,4 @@
-=== Google Publisher Plugin (beta) ===
+=== Google AdSense ===
 Contributors: google
 Tags: adsense, google adsense, adsense plugin, ads, advertising, google ads,  advertisement, advertising, google
 Requires at least: 3.5
@@ -7,29 +7,30 @@ Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-The official Google Publisher Plugin for AdSense, written by Google. Supported products include AdSense and Webmaster Tools.
+The official AdSense Plugin, written by Google. Supported products include AdSense and Webmaster Tools. (Previously called the "Google Publisher Plugin".)
 
 == Description ==
 
-The Google Publisher Plugin enables you to easily use Google's products - including Webmaster Tools - with your WordPress site.
+The AdSense Plugin enables you to easily use Google's products - including Webmaster Tools - with your WordPress site.
 
-To insert AdSense ads without the plugin would first involve generating the AdSense snippet and then pasting the Adsense snippet into either the text of the site or directly into the PHP. This plugin lets you place AdSense ads using a simple point-and-click UI. Google automatically determines potential placements for AdSense ads, suggests an initial ad layout, and gives you control over the placement of ads on your site.
+To insert AdSense ads without the plugin would first involve generating the AdSense snippet and then pasting the Adsense snippet into either the text of the site or directly into the PHP. This plugin lets you place AdSense ads using a simple point-and-click UI rather than manually inserting snippets yourself. Google automatically determines potential placements for AdSense ads, suggests an initial ad layout, and allows you to lay out ads on your site.
 
-This version of the Google Publisher Plugin allows you to:
+This version of the AdSense Plugin allows you to:
 
 * Easily add AdSense ads to your site to make money from advertising.
-* [Manually insert ads](https://support.google.com/adsense/answer/6051417?hl=en&ref_topic=3380274) in locations that you determine yourself. This gives you all the power of manual insertion of snippets while also being able to use the plugin’s great UI. You get full control plus point-and-click.
+* With one click, enable automatic mobile-specific ad layouts. [Learn more](https://support.google.com/adsense/answer/3380277)
+* Manage your ads quickly and easily through a point-and-click interface.
+* [Manually insert ads](https://support.google.com/adsense/answer/6051417) in locations that you determine yourself. This gives you the power of manual insertion of snippets while also being able to use the plugin’s great UI. You can specify precise layout locations in HTML as well as interact with them through a point-and-click interface.
 * [Exclude pages](https://support.google.com/adsense/answer/6023216#disable) from having ads on them.
 * Verify your site with Webmaster Tools with just one click.
-* Manage your ads quickly and easily through a point-and-click interface.
 
 [Visit Google Help Center](https://support.google.com/adsense/answer/3380626) for more information.
 
 == Installation ==
 
-Also see the [AdSense help documentation on installing the Google Publisher Plugin](https://support.google.com/adsense/answer/3380627).
+Also see the [AdSense help documentation on installing the AdSense Plugin](https://support.google.com/adsense/answer/3380627).
 
-After installation, you can [set up the plugin]((https://support.google.com/adsense/answer/answer.py?answer=3380277)).
+After installation, you can [set up the plugin]((https://support.google.com/adsense/answer/3380277)).
 
 Make sure you meet the minimum system requirements.
 
@@ -40,15 +41,15 @@ Make sure you meet the minimum system requirements.
 
 Sign in to your WordPress account and visit the site admin page. You can quickly view this page if you click the WordPress icon in the upper left corner of your WordPress site. Note that you must have permission as an admin of your site to install plugins. If you need help, try [WordPress support](http://wordpress.org/support/).
 
-In the site admin sidebar, click Plugins and select Add New. Enter “Google Publisher Plugin” in the search bar and click Search Plugins.
+In the site admin sidebar, click Plugins and select Add New. Enter “Google AdSense Plugin” in the search bar and click Search Plugins.
 
-Find the Google Publisher Plugin in the list of results and click the Install Now link.
+Find the Google AdSense Plugin in the list of results and click the Install Now link.
 
 At this point, WordPress should automatically install the plugin.
 
 If you have any trouble with automatic installation, you can try it manually. To do this:
 
-* Visit the [WordPress plugin directory](http://wordpress.org/plugins/google-publisher/) page for the Google Publisher Plugin. If you don't see the plugin page, enter "Google Publisher Plugin" in the Search Plugins box on the left and click Search.
+* Visit the [WordPress plugin directory](http://wordpress.org/plugins/google-publisher/) page for the AdSense Plugin. If you don't see the plugin page, enter "Google AdSense Plugin" in the Search Plugins box on the left and click Search.
 * Download the plugin. It should come in the form of a .zip file.
 * Sign in to your WordPress account and visit the site admin page.
 * In the site admin sidebar, click Plugins and select Add New.
@@ -58,17 +59,13 @@ Move on to [plugin setup](https://support.google.com/adsense/answer/answer.py?an
 
 == Frequently Asked Questions ==
 
-= Why is this marked "beta"? =
-
-We are still fine-tuning the plugin to make sure it works well on the many WordPress sites out there. We’d love for you to try it and give us feedback on how well it works for you and your site.
-
 = Is this an official Google plugin? =
 
 Yes, this plugin is developed and supported by Google. [Visit Google Help Center](https://support.google.com/adsense/answer/3380626) for more information.
 
-= Can I use the Google Publisher Plugin on WordPress.com? =
+= Can I use the AdSense Plugin on WordPress.com? =
 
-At this time, the Google Publisher Plugin cannot be used on WordPress.com. WordPress.com [does not allow](http://en.support.wordpress.com/plugins/) this plugin on its hosted sites.
+At this time, the AdSense Plugin cannot be used on WordPress.com. WordPress.com [does not allow](http://en.support.wordpress.com/plugins/) this plugin on its hosted sites.
 
 = The plugin didn’t find a location where I want to put an ad. How do I insert AdSense ads in those locations? =
 
@@ -88,6 +85,9 @@ All plugins and placements must still adhere to the [AdSense Terms and Condition
 4. Preview example advertisements alongside your content.
 
 == Changelog ==
+
+= 8 December 2014, Plugin version 1.0.0 =
+Renamed the plugin from "Google Publisher Plugin" to "AdSense Plugin", and moved it out of beta.
 
 = 10 November 2014 =
 The following changes do not require a plugin update, and were fixed server-side.
@@ -143,7 +143,7 @@ The following changes do not require a plugin update, and were fixed server-side
 
 == Terms of service ==
 
-The plugin source code is GPL, however use of Google Services through the plugin is governed by [Google's Terms of Service](http://www.google.com/policies/terms/) and [Privacy Policy](http://www.google.com/policies/privacy/). For products and services that can be used with the Google Publisher Plugin, such as AdSense, additional Terms of Service may also apply.
+The plugin source code is GPL, however use of Google Services through the plugin is governed by [Google's Terms of Service](http://www.google.com/policies/terms/) and [Privacy Policy](http://www.google.com/policies/privacy/). For products and services that can be used with the AdSense Plugin, such as AdSense, additional Terms of Service may also apply.
 
 == HTML5 Local Storage ==
 

@@ -2,20 +2,20 @@
 /*
 Copyright 2014 Google Inc. All Rights Reserved.
 
-This file is part of the Google Publisher Plugin.
+This file is part of the AdSense Plugin.
 
-The Google Publisher Plugin is free software:
+The AdSense Plugin is free software:
 you can redistribute it and/or modify it under the terms of the
 GNU General Public License as published by the Free Software Foundation,
 either version 2 of the License, or (at your option) any later version.
 
-The Google Publisher Plugin is distributed in the hope that it
+The AdSense Plugin is distributed in the hope that it
 will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
 of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
 Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with the Google Publisher Plugin.
+along with the AdSense Plugin.
 If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -33,8 +33,11 @@ class GooglePublisherPluginUpdater {
   const SITE_DATA_SERVER_ENDPOINT = 'https://www.googleapis.com';
   const SITE_DATA_GET_API_TEMPLATE = '/publisherplugin/v1/sitedata/%s/get';
 
+  /** The timeout on apiary gets. */
+  const SITE_MAX_TIMEOUT = 25;
+
   const UPDATER_STATUS_PREFIX = 'GooglePublisherPluginUpdaterStatus::';
-  const UPDATER_STATUS_HTTP_HEADER = 'X-Google-Publisher-Plugin-Updater-Status';
+  const UPDATER_STATUS_HTTP_HEADER = 'X-Publisher-Plugin-Updater-Status';
 
   const HTTP_BLOCKED_MESSAGE = 'User has blocked requests through HTTP.';
 
@@ -42,9 +45,22 @@ class GooglePublisherPluginUpdater {
   const SITE_ID_PARAMETER = 'siteId';
 
   private $configuration;
+  private $siteTimeout;
 
   public function __construct($configuration) {
     $this->configuration = $configuration;
+    $this->siteTimeout = self::getSiteTimeout(ini_get('max_execution_time'));
+
+  }
+
+  public static function getSiteTimeout($maxExecutionTime) {
+    if (self::SITE_MAX_TIMEOUT < $maxExecutionTime - 5) {
+      return self::SITE_MAX_TIMEOUT;
+    } else if (0 < $maxExecutionTime - 5) {
+      return $maxExecutionTime - 5;
+    } else {
+      return $maxExecutionTime / 2;
+    }
   }
 
   public function doUpdate() {
@@ -53,6 +69,23 @@ class GooglePublisherPluginUpdater {
     $status = self::UPDATER_STATUS_PREFIX . $status;
     header(self::UPDATER_STATUS_HTTP_HEADER . ': ' . $status);
     wp_die($status, '', array('response' => $code));
+  }
+
+  /**
+   * Returns whether push update is supported by trying to reach the site data
+   * server
+   */
+  public function getUpdateSupport() {
+    if (is_null($this->configuration->getUpdateSupport())) {
+      $response = wp_remote_get(self::SITE_DATA_SERVER_ENDPOINT,
+          array('timeout' => $this->siteTimeout));
+      if (is_wp_error($response)) {
+        $this->configuration->writeUpdateSupport('false');
+      } else {
+        $this->configuration->writeUpdateSupport('true');
+      }
+    }
+    return $this->configuration->getUpdateSupport();
   }
 
   /**
@@ -73,7 +106,7 @@ class GooglePublisherPluginUpdater {
 
     $url = self::SITE_DATA_SERVER_ENDPOINT .
         sprintf(self::SITE_DATA_GET_API_TEMPLATE, $siteId);
-    $response = wp_remote_get($url, array('timeout' => 20));
+    $response = wp_remote_get($url, array('timeout' => $this->siteTimeout));
     if (is_wp_error($response)) {
       $this->configuration->writeUpdateSupport('false');
       $errorMessage = $response->get_error_message();
