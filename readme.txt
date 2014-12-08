@@ -7,7 +7,7 @@ Stable tag: trunk
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-The official AdSense Plugin, written by Google. Supported products include AdSense and Webmaster Tools. (Previously "Google Publisher Plugin".)
+The official AdSense Plugin, written by Google. Supported products include AdSense and Webmaster Tools. Previously Google Publisher Plugin.
 
 == Description ==
 
