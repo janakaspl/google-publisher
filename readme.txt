@@ -13,12 +13,14 @@ The official AdSense Plugin, written by Google. Supported products include AdSen
 
 The AdSense Plugin enables you to easily use Google's products - including Webmaster Tools - with your WordPress site.
 
+** Now with Automated Mobile Ads! **
+
 To insert AdSense ads without the plugin would first involve generating the AdSense snippet and then pasting the Adsense snippet into either the text of the site or directly into the PHP. This plugin lets you place AdSense ads using a simple point-and-click UI rather than manually inserting snippets yourself. Google automatically determines potential placements for AdSense ads, suggests an initial ad layout, and allows you to lay out ads on your site.
 
 This version of the AdSense Plugin allows you to:
 
 * Easily add AdSense ads to your site to make money from advertising.
-* With one click, enable automatic mobile-specific ad layouts. [Learn more](https://support.google.com/adsense/answer/3380277)
+* With one click, enable mobile-specific ad layouts with the new Automated Mobile Ads. [Learn more](https://support.google.com/adsense/answer/3380277)
 * Manage your ads quickly and easily through a point-and-click interface.
 * [Manually insert ads](https://support.google.com/adsense/answer/6051417) in locations that you determine yourself. This gives you the power of manual insertion of snippets while also being able to use the plugin’s great UI. You can specify precise layout locations in HTML as well as interact with them through a point-and-click interface.
 * [Exclude pages](https://support.google.com/adsense/answer/6023216#disable) from having ads on them.
@@ -67,6 +69,10 @@ Yes, this plugin is developed and supported by Google. [Visit Google Help Center
 
 At this time, the AdSense Plugin cannot be used on WordPress.com. WordPress.com [does not allow](http://en.support.wordpress.com/plugins/) this plugin on its hosted sites.
 
+= What are Automated Mobile Ads? =
+
+Google will create mobile-specific ad placements automatically with one click. All ads will have locations and formats that are appropriate for mobile.
+
 = The plugin didn’t find a location where I want to put an ad. How do I insert AdSense ads in those locations? =
 
 You can now [manually insert ads](https://support.google.com/adsense/answer/6051417?hl=en&ref_topic=3380274) in locations that you determine yourself. This is an easy-to-use compromise between manual insertion of snippets yourself and the plugin’s easy-to-use UI. You get full control plus point-and-click. See the [help documentation](https://support.google.com/adsense/answer/6051417?hl=en&ref_topic=3380274) for more information.
@@ -79,12 +85,17 @@ All plugins and placements must still adhere to the [AdSense Terms and Condition
 
 == Screenshots ==
 
-1. Manage your AdSense account and access Webmaster Tools from the plugin.
+1. Manage your AdSense account and access Webmaster Tools from the plugin. Use Automated Mobile Ads for one-click mobile ad layouts and formats.
 2. Click to add advertisements to your site. Create different placements for each page template.
 3. View the layout for each page, with advertisement areas visualized next to your content flow.
 4. Preview example advertisements alongside your content.
 
 == Changelog ==
+
+= 11 December 2014  =
+The following change does not require a plugin update, and was fixed server-side.
+
+* Full roll out of Automated Mobile Ads.
 
 = 8 December 2014, Plugin version 1.0.0 =
 Renamed the plugin from "Google Publisher Plugin" to "AdSense Plugin", and moved it out of beta.
