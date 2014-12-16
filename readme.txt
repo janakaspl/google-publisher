@@ -92,6 +92,9 @@ All plugins and placements must still adhere to the [AdSense Terms and Condition
 
 == Changelog ==
 
+= 16 Dec 2014, Plugin version 1.0.1 =
+* Fixed two remaining occurrences of the previous plugin name.
+
 = 11 December 2014  =
 The following change does not require a plugin update, and was fixed server-side.
 

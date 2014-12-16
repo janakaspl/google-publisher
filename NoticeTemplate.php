@@ -25,7 +25,7 @@ if(!defined('ABSPATH')) {
 ?>
 <div class="update-nag">
   <p>
-    <?php _e('There are issues with your Google Publisher Plugin settings. This may affect your ad placements.', 'google-publisher-plugin') ?>
+    <?php _e('There are issues with your AdSense Plugin settings. This may affect your ad placements.', 'google-publisher-plugin') ?>
     <a href="<?php echo admin_url('options-general.php?page=GooglePublisherPlugin'); ?>">
       <?php _e('View settings', 'google-publisher-plugin') ?>
     </a>

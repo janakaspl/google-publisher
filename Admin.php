@@ -88,7 +88,8 @@ class GooglePublisherPluginAdmin {
   }
 
   public function addPageEditOptions() {
-    add_meta_box('googlePublisherPluginMetaBox', 'Google Publisher Plugin',
+    add_meta_box('googlePublisherPluginMetaBox',
+        __('AdSense Plugin', 'google-publisher-plugin'),
         array($this, 'showPageEditOptions'), 'page', 'side', 'low');
   }
 
