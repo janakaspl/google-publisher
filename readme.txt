@@ -92,6 +92,9 @@ All plugins and placements must still adhere to the [AdSense Terms and Condition
 
 == Changelog ==
 
+= 13 Jan 2015, Plugin version 1.0.2 =
+* Fixed a bug that caused newly created pages on some themes to be incorrectly recognized as using custom page templates.
+
 = 16 Dec 2014, Plugin version 1.0.1 =
 * Fixed two remaining occurrences of the previous plugin name.
 

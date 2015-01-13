@@ -4,7 +4,7 @@ Plugin Name: Google AdSense
 Plugin URI: http://wordpress.org/plugins/google-publisher
 Description: Use Google AdSense and other Google tools with your WordPress site.
 Author: Google
-Version: 1.0.1
+Version: 1.0.2
 Author URI: https://support.google.com/adsense/answer/3380626
 License: GPL2
 Text Domain: google-publisher-plugin
@@ -53,7 +53,7 @@ GooglePublisherPlugin::$basename =
 class GooglePublisherPlugin {
   public static $basename;
 
-  const PLUGIN_VERSION = '1.0.1';
+  const PLUGIN_VERSION = '1.0.2';
 
   private $admin;
   private $configuration;

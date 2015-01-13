@@ -81,11 +81,11 @@ var setIframeLayout = function(layout, previewMarginTop, pageHeight) {
   var hideWordPressMenu = (layout != IframeLayout.NORMAL);
   var adminMenuWrap = document.getElementById('adminmenuwrap');
   if (adminMenuWrap) {
-    adminMenuWrap.style.display = hideWordPressMenu ? 'none' : 'block';
+    adminMenuWrap.style.visibility = hideWordPressMenu ? 'hidden' : 'visible';
   }
   var adminMenuBack = document.getElementById('adminmenuback');
   if (adminMenuBack) {
-    adminMenuBack.style.display = hideWordPressMenu ? 'none' : 'block';
+    adminMenuBack.style.visibility = hideWordPressMenu ? 'hidden' : 'visible';
   }
 };
 

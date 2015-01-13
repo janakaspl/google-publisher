@@ -53,13 +53,11 @@ class GooglePublisherPluginUtils {
       return 'singlePost';
     }
     if (is_page()) {
-      global $wp_query;
-      $template_name = get_post_meta(
-          $wp_query->post->ID, '_wp_page_template', true);
-      if ($template_name != 'default') {
+      if (self::getPageTemplate() == 'default') {
+        return 'page';
+      } else {
         return 'customPageTemplate';
       }
-      return 'page';
     }
     if (is_category()) {
       return 'category';
@@ -74,6 +72,27 @@ class GooglePublisherPluginUtils {
       return 'errorPage';
     }
     return '';
+  }
+
+  /**
+   * Gets the template file from the id. If the template is not in use by the
+   * current theme then 'default' is returned. This does not handle page
+   * specific php files.
+   *
+   * @param int id The id of the page template to return. If no id is specified
+   *     then the id of the current page is used.
+   *
+   * @return string The template name if it is in use, default otherwise
+   */
+  private static function getPageTemplate($id = null) {
+    $template = get_page_template_slug($id);
+    if (is_string($template) && $template != '') {
+      $templates = wp_get_theme()->get_page_templates();
+      if (array_key_exists($template, $templates)) {
+        return $template;
+      }
+    }
+    return 'default';
   }
 
   /**
@@ -166,7 +185,8 @@ class GooglePublisherPluginUtils {
    *     ads excluded.
    */
   private static function getCustomPageTemplates($siteUrl, $postsUrl) {
-    $pages = get_pages(array('meta_key' => '_wp_page_template'));
+    $pages = get_pages(
+      array('post_type' => 'page', 'post_status' => 'publish'));
     $customPageTemplates = array();
     $templatesWithExclusions = array();
     foreach ($pages as $page) {
@@ -174,18 +194,18 @@ class GooglePublisherPluginUtils {
       if ($pageUrl == $siteUrl || $pageUrl == $postsUrl) {
         continue;
       }
-      $pageTemplate = $page->meta_value;
+      $pageTemplate = self::getPageTemplate($page->ID);
       $pageWithExclusions = get_post_meta($page->ID,
           self::EXCLUDE_ADS_METADATA, true);
       if (!isset($templatesWithExclusions[$pageTemplate])) {
         $templatesWithExclusions[$pageTemplate] = true;
       }
-      // Note meta_value is the file name of the _wp_page_template
+      // Note the pageTemplate is 'default' or the name of the php file
       if (!$pageWithExclusions) {
         $templatesWithExclusions[$pageTemplate] = false;
-        $customPageTemplates[$page->meta_value] = $pageUrl;
+        $customPageTemplates[$pageTemplate] = $pageUrl;
       } else if ($templatesWithExclusions[$pageTemplate]) {
-        $customPageTemplates[$page->meta_value] = $pageUrl;
+        $customPageTemplates[$pageTemplate] = $pageUrl;
       }
     }
     return $customPageTemplates;
